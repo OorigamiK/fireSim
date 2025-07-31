@@ -3,6 +3,8 @@
 #include "include/glad/glad.h"
 #include <GLFW/glfw3.h>
 
+#include "physics.cpp"
+
 #include <iostream>
 #include <fstream>
 
@@ -11,7 +13,7 @@ void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_HEIGHT = 800;
 
 char* readFileToChar(const char* filename) {
     std::ifstream file(filename, std::ios::binary | std::ios::ate); // open at end to get size
@@ -138,10 +140,42 @@ int main()
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    float h=100;
+    const int offset=6;
+    const int numOfParticles=1000;
+    float x=0;
+    float y=0;
+    float z=0;
+    float particles[offset*numOfParticles];
+    for (int i=0;i<numOfParticles;i++){
+        particles[i*offset+0]=x;
+        particles[i*offset+1]=y;
+        particles[i*offset+2]=z;
+        particles[i*offset+3]=1;
+
+        if (x<9){
+            x++;
+        }
+        else if(y<9){
+            y++;
+            x=0;
+        }
+        else{
+            z++;
+            x=0;
+            y=0;
+        }
+    }
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        update(particles, numOfParticles, offset, h, 0.01);
+        std::cout<<"\n";
+        for (int i=0;i<numOfParticles;i++){
+            std::cout<<"("<<particles[i*offset+0]<<", "<<particles[i*offset+1]<<", "<<particles[i*offset+2]<<")"<<"\n";
+        }
+        std::cout<<"\n";
         // input
         // -----
         processInput(window);
