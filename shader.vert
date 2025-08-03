@@ -5,6 +5,6 @@ out vec3 pos;
 
 void main()
 {
+    pos=aPos;
     gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-    pos=(aPos+vec3(1,1,0))/2;
 }

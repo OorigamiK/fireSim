@@ -7,6 +7,7 @@ float maxf(float a, float b){
     return a;
 }
 
+
 float W(float r, float h){
     return pow(maxf(0, (1-r/h)), 2);
 }

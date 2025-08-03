@@ -12,6 +12,7 @@ LDFLAGS = -lglfw -lGL -ldl -lm -lX11 -lpthread -lXrandr -lXi
 # Sources
 SRC_CPP = main.cpp physics.cpp
 SRC_C = glad.c
+SRC_SHADER = $(wildcard *.frag) $(wildcard *.vert)
 
 # Build directory
 BUILD_DIR = build
@@ -39,6 +40,10 @@ $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR)/main.o: main.cpp $(SRC_SHADER) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c main.cpp -o $(BUILD_DIR)/main.o
+
+
 # Create build directory if not exists
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -50,5 +55,5 @@ clean:
 .PHONY: all clean
 
 PHONY: run
-run:
-	./fireSim
+run: $(TARGET)
+	./$(TARGET)

@@ -5,6 +5,7 @@
 
 #include "physics.h"
 
+
 #include <iostream>
 #include <fstream>
 
@@ -171,6 +172,10 @@ int main()
         }
     }
 
+    x=0;
+    y=0;
+    z=-100;
+
     GLint location = glGetUniformLocation(shaderProgram, "basicData");
     glUniform1fv(location, 10, basicData);
 
@@ -191,7 +196,7 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        update(particles, numOfParticles, offset, h, 0.01);
+        update(particles, numOfParticles, offset, h, 0.001);
 
         glBindBuffer(GL_TEXTURE_BUFFER, bufGL);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, numOfParticles * offset * sizeof(float), particles);
@@ -201,7 +206,6 @@ int main()
         basicData[4]=z;
         basicData[5]=xRot;
         basicData[6]=yRot;
-        glUniform1fv(location, 10, basicData);
 
         /*std::cout<<"\n";
         for (int i=0;i<numOfParticles;i++){
@@ -219,6 +223,11 @@ int main()
 
         // draw our first triangle
         glUseProgram(shaderProgram);
+        if (location == -1){
+            std::cout << "Warning: 'basicData' uniform not active or found in shader.\n";
+        }
+        glUniform1fv(location, 10, basicData);
+
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         glDrawArrays(GL_TRIANGLES, 0, 6);
         // glBindVertexArray(0); // no need to unbind it every time 
