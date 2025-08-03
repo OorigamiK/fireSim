@@ -1,5 +1,4 @@
-#include <math.h>
-#include <iostream>
+#include "physics.h"
 
 float maxf(float a, float b){
     if (a<b) {
@@ -39,8 +38,11 @@ void calcPressure(float particles[], int numOfParticles, int offset, int index, 
 }
 
 void D(float particles[], int numOfParticles, int offset, int indexI, int indexJ, float h, float deltaTime, float outVec[3]){
-    float P=particles[offset*indexI+4];
-    float PNear=particles[offset*indexI+5];
+    const float kNear=2;
+    const float k = 1;
+    
+    float P=k*particles[offset*indexI+4];
+    float PNear=kNear*particles[offset*indexI+5];
     float x=particles[indexI*offset+0];
     float y=particles[indexI*offset+1];
     float z=particles[indexI*offset+2];

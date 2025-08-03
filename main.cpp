@@ -3,7 +3,7 @@
 #include "include/glad/glad.h"
 #include <GLFW/glfw3.h>
 
-#include "physics.cpp"
+#include "physics.h"
 
 #include <iostream>
 #include <fstream>
@@ -146,7 +146,11 @@ int main()
     float x=0;
     float y=0;
     float z=0;
+    float xRot=0;
+    float yRot=0;
     float particles[offset*numOfParticles];
+    float basicData[10]={numOfParticles, offset, x, y, z, xRot, yRot, 0, 0, 0};
+
     for (int i=0;i<numOfParticles;i++){
         particles[i*offset+0]=x;
         particles[i*offset+1]=y;
@@ -166,16 +170,44 @@ int main()
             y=0;
         }
     }
+
+    GLint location = glGetUniformLocation(shaderProgram, "basicData");
+    glUniform1fv(location, 10, basicData);
+
+    GLuint bufGL, texGL;
+    glGenBuffers(1, &bufGL);
+    glBindBuffer(GL_TEXTURE_BUFFER, bufGL);
+    glBufferData(GL_TEXTURE_BUFFER, numOfParticles*offset*sizeof(float), particles, GL_DYNAMIC_DRAW);
+
+    glGenTextures(1, &texGL);
+    glBindTexture(GL_TEXTURE_BUFFER, texGL);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, bufGL);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_BUFFER, texGL);
+    glUniform1i(glGetUniformLocation(shaderProgram, "particleData"), 0);
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
         update(particles, numOfParticles, offset, h, 0.01);
-        std::cout<<"\n";
+
+        glBindBuffer(GL_TEXTURE_BUFFER, bufGL);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, numOfParticles * offset * sizeof(float), particles);
+
+        basicData[2]=x;
+        basicData[3]=y;
+        basicData[4]=z;
+        basicData[5]=xRot;
+        basicData[6]=yRot;
+        glUniform1fv(location, 10, basicData);
+
+        /*std::cout<<"\n";
         for (int i=0;i<numOfParticles;i++){
             std::cout<<"("<<particles[i*offset+0]<<", "<<particles[i*offset+1]<<", "<<particles[i*offset+2]<<")"<<"\n";
         }
-        std::cout<<"\n";
+        std::cout<<"\n";*/
         // input
         // -----
         processInput(window);
