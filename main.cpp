@@ -33,11 +33,57 @@ char* readFileToChar(const char* filename) {
     return nullptr;
 }
 
+GLuint createShaderProgram(const char* vert, const char* frag){
+    const char *vertexShaderSource=readFileToChar(vert);
+    const char *fragmentShaderSource=readFileToChar(frag);
+
+    if (!vertexShaderSource || !fragmentShaderSource) {
+        std::cerr << "ERROR: Failed to load shader source" << std::endl;
+        return 0;  // 0 is not a valid shader program
+    }
+
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    return shaderProgram;
+}
+
 int main()
 {
-    const char *vertexShaderSource = readFileToChar("shader.vert");
-    const char *fragmentShaderSource = readFileToChar("shader.frag");
-
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -65,46 +111,8 @@ int main()
         return -1;
     }
 
-
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    GLuint shaderProgram=createShaderProgram("shader.vert", "shader.frag");
+    GLuint computeProgram=createShaderProgram("compute.vert", "compute.frag");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -191,13 +199,15 @@ int main()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_BUFFER, texGL);
     glUniform1i(glGetUniformLocation(shaderProgram, "particleData"), 0);
-
+    GLint maxViewport[2];
+    glGetIntegerv(GL_MAX_VIEWPORT_DIMS, maxViewport);
+    std::cout << "Max viewport: " << maxViewport[0] << " x " << maxViewport[1] << std::endl;
+    
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        update(particles, numOfParticles, offset, h, 0.001);
-
+        update(particles, numOfParticles, offset, h, 0.01);
         glBindBuffer(GL_TEXTURE_BUFFER, bufGL);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, numOfParticles * offset * sizeof(float), particles);
 

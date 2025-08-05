@@ -32,19 +32,17 @@ vec2 rayBallIntersection(vec3 rayDir, vec3 rayPos, vec3 spherePos, float r) {
 }
 
 float rayTrace(vec3 rayDir, vec3 rayPos, int numOfParticles, int offset){
-    float dist=-1;
+    float res=0;
     for (int i=0;i<numOfParticles;i++){
         float x=texelFetch(particleData, i*offset+0).x;
         float y=texelFetch(particleData, i*offset+1).x;
         float z=texelFetch(particleData, i*offset+2).x;
 
         vec3 spherePos=vec3(x,y,z);
-        float disToParticle0=rayBallIntersection(rayDir, rayPos, spherePos,1).x;
-        if (dist==-1 || (disToParticle0<dist && disToParticle0>0)){
-            dist = disToParticle0;
-        }
+        float dist=length((rayPos-spherePos)-rayDir*dot(rayPos-spherePos, rayDir));
+        res+=exp(-dist);
     }
-    return dist;
+    return atan(res);
 }
 
 void main()
@@ -56,9 +54,7 @@ void main()
     vec3 rayDir=normalize(vec3(pos.x, pos.y, 1));
     rayDir=rotate(rayDir, vec2(basicData[5], basicData[6]));
 
-    float disToParticle=rayTrace(rayDir, rayPos, numOfParticles, offset);
+    float weight=rayTrace(rayDir, rayPos, numOfParticles, offset);
 
-    if (disToParticle>0){
-        FragColor=vec4(1,0,0,1);
-    }
+    FragColor=vec4(weight,0,0,1);
 }

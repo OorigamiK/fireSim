@@ -74,13 +74,13 @@ void updateParticle(float particles[], int numOfParticles, int offset, int index
         if (j==index) continue;
         float force0[3]={0,0,0};
         D(particles, numOfParticles, offset, index, j, h, deltaTime, force0);
-        particles[offset*j+0]+=force0[0]/2;
-        particles[offset*j+1]+=force0[1]/2;
-        particles[offset*j+2]+=force0[2]/2;
+        particles[offset*j+0]-=force0[0]/2;
+        particles[offset*j+1]-=force0[1]/2;
+        particles[offset*j+2]-=force0[2]/2;
 
-        force[0]-=force0[0]/2;
-        force[1]-=force0[1]/2;
-        force[2]-=force0[2]/2;
+        force[0]+=force0[0]/2;
+        force[1]+=force0[1]/2;
+        force[2]+=force0[2]/2;
     }
     particles[offset*index+0]+=force[0];
     particles[offset*index+1]+=force[1];
